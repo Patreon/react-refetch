@@ -82,11 +82,13 @@ export default function connect(mapPropsToRequestsToProps, options = {}) {
       return json
     } else {
       return json.then((errorJson) => {
-        const error = errorJson.errors[0]
+        let error = errorJson.errors[0]
         if (error) {
-          throw new Error(JSON.stringify(error), meta)
+          error = Object.assign({}, error, {meta: meta})
+          throw new Error(JSON.stringify(error))
         } else {
-          throw new Error(JSON.stringify(errorJson, meta))
+          error = Object.assign({}, errorJson, {meta: meta})
+          throw new Error(JSON.stringify(error))
         }
       })
     }
@@ -175,14 +177,16 @@ export default function connect(mapPropsToRequestsToProps, options = {}) {
               this.refetchDataFromMappings(mapping.andThen(value, meta))
             }
           })
-        }).catch((reason, meta) => {
-          
-          // hack to handle uncaught exceptions with better reporting and simplify reporting -gb
-          // another possible option for check is error.status
-          if (!reason.message) {
+        }).catch((reason) => {
+          try {
+            reason = JSON.parse(reason.message)
+          } catch (err) {
             throw new Error(reason)
           }
-          
+
+          const { meta } = reason
+          delete reason.meta
+
           if (Function.prototype.isPrototypeOf(mapping.catch)) {
             this.refetchDatum(coerceMapping(null, mapping.catch(reason, meta)))
             return
@@ -210,7 +214,7 @@ export default function connect(mapPropsToRequestsToProps, options = {}) {
 
           return window.fetch(request).then(response => {
             return Promise.all([
-              handleResponse(response, meta),
+              handleResponse(response, Object.assign(meta, { response: response })),
               Promise.resolve(Object.assign(meta, { response: response }))
             ])
           })
