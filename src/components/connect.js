@@ -82,11 +82,9 @@ export default function connect(mapPropsToRequestsToProps, options = {}) {
       return json
     } else {
       return json.then((errorJson) => {
-        const { id, error, message } = errorJson
+        const error = errorJson.errors[0]
         if (error) {
-          throw new Error(error, id)
-        } else if (message) {
-          throw new Error(message, id)
+          throw new Error(error, error.id)
         } else {
           throw new Error(errorJson)
         }
@@ -178,13 +176,14 @@ export default function connect(mapPropsToRequestsToProps, options = {}) {
             }
           })
         }).catch((error) => {
-          let [ reason, meta ] = error
-          // hack to handle uncaught exceptions with better reporting
-          if (!reason) {
+          // hack to handle uncaught exceptions with better reporting and simplify reporting -gb
+          // another possible option for check is error.status
+          if (!error.description) {
             throw new Error(error)
           }
+          
           if (Function.prototype.isPrototypeOf(mapping.catch)) {
-            this.refetchDatum(coerceMapping(null, mapping.catch(reason, meta)))
+            this.refetchDatum(coerceMapping(null, mapping.catch(error.description, error)))
             return
           }
 
