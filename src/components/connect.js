@@ -181,7 +181,7 @@ export default function connect(mapPropsToRequestsToProps, options = {}) {
           let [ reason, meta ] = error
           // hack to handle uncaught exceptions with better reporting
           if (!reason) {
-            reason = error.message
+            throw Error(error)
           }
           if (Function.prototype.isPrototypeOf(mapping.catch)) {
             this.refetchDatum(coerceMapping(null, mapping.catch(reason, meta)))
