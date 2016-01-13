@@ -177,7 +177,12 @@ export default function connect(mapPropsToRequestsToProps, options = {}) {
               this.refetchDataFromMappings(mapping.andThen(value, meta))
             }
           })
-        }).catch(([ reason, meta ]) => {
+        }).catch((error) => {
+          let [ reason, meta ] = error
+          // hack to handle uncaught exceptions with better reporting
+          if (!reason) {
+            reason = error.message
+          }
           if (Function.prototype.isPrototypeOf(mapping.catch)) {
             this.refetchDatum(coerceMapping(null, mapping.catch(reason, meta)))
             return
