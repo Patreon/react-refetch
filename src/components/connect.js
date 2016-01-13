@@ -175,15 +175,16 @@ export default function connect(mapPropsToRequestsToProps, options = {}) {
               this.refetchDataFromMappings(mapping.andThen(value, meta))
             }
           })
-        }).catch((error) => {
+        }).catch((reason) => {
+          
           // hack to handle uncaught exceptions with better reporting and simplify reporting -gb
           // another possible option for check is error.status
-          if (!error.description) {
-            throw new Error(error)
+          if (!reason.message) {
+            throw new Error(reason)
           }
           
           if (Function.prototype.isPrototypeOf(mapping.catch)) {
-            this.refetchDatum(coerceMapping(null, mapping.catch(error.description, error)))
+            this.refetchDatum(coerceMapping(null, mapping.catch(reason, meta)))
             return
           }
 
