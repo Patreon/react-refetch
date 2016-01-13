@@ -84,9 +84,9 @@ export default function connect(mapPropsToRequestsToProps, options = {}) {
       return json.then((errorJson) => {
         const error = errorJson.errors[0]
         if (error) {
-          throw new Error(error, error.id)
+          throw new Error(JSON.stringify(error), error.id)
         } else {
-          throw new Error(errorJson)
+          throw new Error(JSON.stringify(errorJson))
         }
       })
     }
