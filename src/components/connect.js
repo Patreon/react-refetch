@@ -76,7 +76,7 @@ export default function connect(mapPropsToRequestsToProps, options = {}) {
     })
   }
 
-  function handleResponse(response) {
+  function handleResponse(response, meta) {
     const json = response.json() // TODO: support other response types
     if (response.status >= 200 && response.status < 300) { // TODO: support custom acceptable statuses
       return json
@@ -84,9 +84,9 @@ export default function connect(mapPropsToRequestsToProps, options = {}) {
       return json.then((errorJson) => {
         const error = errorJson.errors[0]
         if (error) {
-          throw new Error(JSON.stringify(error), error.id)
+          throw new Error(JSON.stringify(error), meta)
         } else {
-          throw new Error(JSON.stringify(errorJson))
+          throw new Error(JSON.stringify(errorJson, meta))
         }
       })
     }
@@ -175,7 +175,7 @@ export default function connect(mapPropsToRequestsToProps, options = {}) {
               this.refetchDataFromMappings(mapping.andThen(value, meta))
             }
           })
-        }).catch((reason) => {
+        }).catch((reason, meta) => {
           
           // hack to handle uncaught exceptions with better reporting and simplify reporting -gb
           // another possible option for check is error.status
@@ -210,7 +210,7 @@ export default function connect(mapPropsToRequestsToProps, options = {}) {
 
           return window.fetch(request).then(response => {
             return Promise.all([
-              handleResponse(response),
+              handleResponse(response, meta),
               Promise.resolve(Object.assign(meta, { response: response }))
             ])
           })
